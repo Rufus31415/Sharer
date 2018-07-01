@@ -38,7 +38,7 @@ void loop() {
 ```
 
 
-## [.NET C# code exemple](https://github.com/Rufus31415/Sharer.NET)
+## [.NET C# code example](https://github.com/Rufus31415/Sharer.NET)
 
 
 
