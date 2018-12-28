@@ -1,5 +1,5 @@
 
-
+#define _SHARER_MAX_FUNCTION_COUNT 15
 #include <Sharer.h>
 
 
@@ -56,7 +56,7 @@ int notArgs() {
 }
 
 
-
+int a;
 
 void setup()
 {
@@ -130,6 +130,15 @@ void setup()
 
 
 	Sharer_ShareVoid(pureVoid);
+
+
+
+	if (Sharer.variableList.count < _SHARER_MAX_VARIABLE_COUNT) {
+		Sharer.variableList.variables[Sharer.variableList.count].name = PSTR("a");
+		Sharer.variableList.variables[Sharer.variableList.count].value.type = SharerClass::_SharerFunctionArgType::Typeint;
+		Sharer.variableList.variables[Sharer.variableList.count].value.pointer = &a;
+		Sharer.variableList.count++;
+	}
 
 }
 

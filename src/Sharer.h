@@ -3,21 +3,120 @@
 #ifndef _SHARER_h
 #define _SHARER_h
 
+#include "SharerConfig.h"
+
 #if defined(ARDUINO) && ARDUINO >= 100
 	#include "Arduino.h"
 #else
 	#include "WProgram.h"
 #endif
 
-#define _SHARER_MAX_FUNCTION_COUNT	10
+#if defined(TEENSYDUINO) 
 
-#define _SHARER_USER_RECEIVE_BUFFER_SIZE	20
+//  --------------- Teensy -----------------
 
+#if defined(__AVR_ATmega32U4__)
+#define BOARD "Teensy 2.0"
+#elif defined(__AVR_AT90USB1286__)       
+#define BOARD "Teensy++ 2.0"
+#elif defined(__MK20DX128__)       
+#define BOARD "Teensy 3.0"
+#elif defined(__MK20DX256__)       
+#define BOARD "Teensy 3.2" // and Teensy 3.1 (obsolete)
+#elif defined(__MKL26Z64__)       
+#define BOARD "Teensy LC"
+#elif defined(__MK64FX512__)
+#define BOARD "Teensy 3.5"
+#elif defined(__MK66FX1M0__)
+#define BOARD "Teensy 3.6"
+#else
+#error "Unknown board"
+#endif
+
+#else // --------------- Arduino ------------------
+
+#if   defined(ARDUINO_AVR_ADK)       
+#define BOARD "Mega Adk"
+#elif defined(ARDUINO_AVR_BT)    // Bluetooth
+#define BOARD "Bt"
+#elif defined(ARDUINO_AVR_DUEMILANOVE)       
+#define BOARD "Duemilanove"
+#elif defined(ARDUINO_AVR_ESPLORA)       
+#define BOARD "Esplora"
+#elif defined(ARDUINO_AVR_ETHERNET)       
+#define BOARD "Ethernet"
+#elif defined(ARDUINO_AVR_FIO)       
+#define BOARD "Fio"
+#elif defined(ARDUINO_AVR_GEMMA)
+#define BOARD "Gemma"
+#elif defined(ARDUINO_AVR_LEONARDO)       
+#define BOARD "Leonardo"
+#elif defined(ARDUINO_AVR_LILYPAD)
+#define BOARD "Lilypad"
+#elif defined(ARDUINO_AVR_LILYPAD_USB)
+#define BOARD "Lilypad Usb"
+#elif defined(ARDUINO_AVR_MEGA)       
+#define BOARD "Mega"
+#elif defined(ARDUINO_AVR_MEGA2560)       
+#define BOARD "Mega 2560"
+#elif defined(ARDUINO_AVR_MICRO)       
+#define BOARD "Micro"
+#elif defined(ARDUINO_AVR_MINI)       
+#define BOARD "Mini"
+#elif defined(ARDUINO_AVR_NANO)       
+#define BOARD "Nano"
+#elif defined(ARDUINO_AVR_NG)       
+#define BOARD "NG"
+#elif defined(ARDUINO_AVR_PRO)       
+#define BOARD "Pro"
+#elif defined(ARDUINO_AVR_ROBOT_CONTROL)       
+#define BOARD "Robot Ctrl"
+#elif defined(ARDUINO_AVR_ROBOT_MOTOR)       
+#define BOARD "Robot Motor"
+#elif defined(ARDUINO_AVR_UNO)       
+#define BOARD "Uno"
+#elif defined(ARDUINO_AVR_YUN)       
+#define BOARD "Yun"
+
+// These boards must be installed separately:
+#elif defined(ARDUINO_SAM_DUE)       
+#define BOARD "Due"
+#elif defined(ARDUINO_SAMD_ZERO)       
+#define BOARD "Zero"
+#elif defined(ARDUINO_ARC32_TOOLS)       
+#define BOARD "101"
+#else
+#error "Unknown board"
+#endif
+
+#endif
+
+#define SHARER_VERSION_MAJOR	1
+#define SHARER_VERSION_MINOR	0
+#define SHARER_VERSION_FIX		0
+
+#ifdef F_CPU
+#define SHARER_F_CPU F_CPU
+#else
+#define SHARER_F_CPU -1L
+#endif // F_CPU
+
+#ifdef GCC_VERSION
+#define SHARER_GCC_VERSION GCC_VERSION
+#else
+#define SHARER_GCC_VERSION	-1
+#endif // GCC_VERSION
+
+#ifdef __cplusplus
+#define SHARER___cplusplus __cplusplus
+#else
+#define SHARER___cplusplus	-1L
+#endif // __cplusplus
+
+
+
+// Start byte that identifies a Sharer command
 #define _SHARER_START_COMMAND_CHAR	0x92
-
-// maximum numbre of call to Serial read() each time Sharer.Run() is called
-#define _SHARER_MAX_BYTE_READ_PER_RUN	20
-
 
 
 #define _SHARER_PP_NARG(...) \
@@ -43,21 +142,35 @@
 
 
 
-#define _SHARER_GET_OVERRIDE(_1, _2, _3, _4, _5, _6, NAME, ...) NAME
+#define _SHARER_GET_OVERRIDE(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, NAME, ...) NAME
 
 #define _SHARER_DECLARE_STATIC_BASE(functionName, argumentType, argumentName) static argumentType functionName ## _arg_ ## argumentName;
 
+#define _SHARER_DECLARE_STATIC10(f, t, n, ...)   _SHARER_DECLARE_STATIC_BASE(f, t, n) _SHARER_DECLARE_STATIC9(f, __VA_ARGS__)
+#define _SHARER_DECLARE_STATIC9(f, t, n, ...)   _SHARER_DECLARE_STATIC_BASE(f, t, n) _SHARER_DECLARE_STATIC8(f, __VA_ARGS__)
+#define _SHARER_DECLARE_STATIC8(f, t, n, ...)   _SHARER_DECLARE_STATIC_BASE(f, t, n) _SHARER_DECLARE_STATIC7(f, __VA_ARGS__)
+#define _SHARER_DECLARE_STATIC7(f, t, n, ...)   _SHARER_DECLARE_STATIC_BASE(f, t, n) _SHARER_DECLARE_STATIC6(f, __VA_ARGS__)
+#define _SHARER_DECLARE_STATIC6(f, t, n, ...)   _SHARER_DECLARE_STATIC_BASE(f, t, n) _SHARER_DECLARE_STATIC5(f, __VA_ARGS__)
+#define _SHARER_DECLARE_STATIC5(f, t, n, ...)   _SHARER_DECLARE_STATIC_BASE(f, t, n) _SHARER_DECLARE_STATIC4(f, __VA_ARGS__)
+#define _SHARER_DECLARE_STATIC4(f, t, n, ...)   _SHARER_DECLARE_STATIC_BASE(f, t, n) _SHARER_DECLARE_STATIC3(f, __VA_ARGS__)
 #define _SHARER_DECLARE_STATIC3(f, t, n, ...)   _SHARER_DECLARE_STATIC_BASE(f, t, n) _SHARER_DECLARE_STATIC2(f, __VA_ARGS__)
 #define _SHARER_DECLARE_STATIC2(f, t, n, ...)   _SHARER_DECLARE_STATIC_BASE(f, t, n) _SHARER_DECLARE_STATIC1(f, __VA_ARGS__)
 #define _SHARER_DECLARE_STATIC1(f, t, n)        _SHARER_DECLARE_STATIC_BASE(f, t, n)
 #define _SHARER_DECLARE_STATIC0(...)   
 
 #define _SHARER_DECLARE_STATIC(f, ...) _SHARER__GET_OVERRIDE(__VA_ARGS__, \
-        _SHARER_DECLARE_STATIC3, _SHARER_DECLARE_STATIC2_, _SHARER_DECLARE_STATIC2, _SHARER_DECLARE_STATIC1_, _SHARER_DECLARE_STATIC1, _SHARER_DECLARE_STATIC0)(f, __VA_ARGS__);
+        _SHARER_DECLARE_STATIC10, _SHARER_DECLARE_STATIC9_, _SHARER_DECLARE_STATIC9,  _SHARER_DECLARE_STATIC8_, _SHARER_DECLARE_STATIC8,  _SHARER_DECLARE_STATIC7_, _SHARER_DECLARE_STATIC7, _SHARER_DECLARE_STATIC6_, _SHARER_DECLARE_STATIC6, _SHARER_DECLARE_STATIC5_, _SHARER_DECLARE_STATIC5, _SHARER_DECLARE_STATIC4_, _SHARER_DECLARE_STATIC4, _SHARER_DECLARE_STATIC3_, _SHARER_DECLARE_STATIC3, _SHARER_DECLARE_STATIC2_, _SHARER_DECLARE_STATIC2, _SHARER_DECLARE_STATIC1_, _SHARER_DECLARE_STATIC1, _SHARER_DECLARE_STATIC0)(f, __VA_ARGS__);
 
 
 #define _SHARER_DECLARE_ARG_BASE(functionName, argumentType, argumentName) { PSTR(#argumentName), SharerClass::_SharerFunctionArgType::Type ## argumentType, & functionName ## _arg_ ## argumentName },
 
+#define _SHARER_DECLARE_ARG10(f, t, n, ...)   _SHARER_DECLARE_ARG_BASE(f, t, n) _SHARER_DECLARE_ARG9(f, __VA_ARGS__)
+#define _SHARER_DECLARE_ARG9(f, t, n, ...)   _SHARER_DECLARE_ARG_BASE(f, t, n) _SHARER_DECLARE_ARG8(f, __VA_ARGS__)
+#define _SHARER_DECLARE_ARG8(f, t, n, ...)   _SHARER_DECLARE_ARG_BASE(f, t, n) _SHARER_DECLARE_ARG7(f, __VA_ARGS__)
+#define _SHARER_DECLARE_ARG7(f, t, n, ...)   _SHARER_DECLARE_ARG_BASE(f, t, n) _SHARER_DECLARE_ARG6(f, __VA_ARGS__)
+#define _SHARER_DECLARE_ARG6(f, t, n, ...)   _SHARER_DECLARE_ARG_BASE(f, t, n) _SHARER_DECLARE_ARG5(f, __VA_ARGS__)
+#define _SHARER_DECLARE_ARG5(f, t, n, ...)   _SHARER_DECLARE_ARG_BASE(f, t, n) _SHARER_DECLARE_ARG4(f, __VA_ARGS__)
+#define _SHARER_DECLARE_ARG4(f, t, n, ...)   _SHARER_DECLARE_ARG_BASE(f, t, n) _SHARER_DECLARE_ARG3(f, __VA_ARGS__)
 #define _SHARER_DECLARE_ARG3(f, t, n, ...)   _SHARER_DECLARE_ARG_BASE(f, t, n) _SHARER_DECLARE_ARG2(f, __VA_ARGS__)
 #define _SHARER_DECLARE_ARG2(f, t, n, ...)   _SHARER_DECLARE_ARG_BASE(f, t, n) _SHARER_DECLARE_ARG1(f, __VA_ARGS__)
 #define _SHARER_DECLARE_ARG1(f, t, n)        _SHARER_DECLARE_ARG_BASE(f, t, n)
@@ -67,6 +180,13 @@
 
 #define _SHARER_DECLARE_CALL_BASE(functionName, argumentType, argumentName) functionName ## _arg_ ## argumentName
 
+#define _SHARER_DECLARE_CALL10(f, t, n, ...)   _SHARER_DECLARE_CALL_BASE(f, t, n), _SHARER_DECLARE_CALL9(f, __VA_ARGS__)
+#define _SHARER_DECLARE_CALL9(f, t, n, ...)   _SHARER_DECLARE_CALL_BASE(f, t, n), _SHARER_DECLARE_CALL8(f, __VA_ARGS__)
+#define _SHARER_DECLARE_CALL8(f, t, n, ...)   _SHARER_DECLARE_CALL_BASE(f, t, n), _SHARER_DECLARE_CALL7(f, __VA_ARGS__)
+#define _SHARER_DECLARE_CALL7(f, t, n, ...)   _SHARER_DECLARE_CALL_BASE(f, t, n), _SHARER_DECLARE_CALL6(f, __VA_ARGS__)
+#define _SHARER_DECLARE_CALL6(f, t, n, ...)   _SHARER_DECLARE_CALL_BASE(f, t, n), _SHARER_DECLARE_CALL5(f, __VA_ARGS__)
+#define _SHARER_DECLARE_CALL5(f, t, n, ...)   _SHARER_DECLARE_CALL_BASE(f, t, n), _SHARER_DECLARE_CALL4(f, __VA_ARGS__)
+#define _SHARER_DECLARE_CALL4(f, t, n, ...)   _SHARER_DECLARE_CALL_BASE(f, t, n), _SHARER_DECLARE_CALL3(f, __VA_ARGS__)
 #define _SHARER_DECLARE_CALL3(f, t, n, ...)   _SHARER_DECLARE_CALL_BASE(f, t, n), _SHARER_DECLARE_CALL2(f, __VA_ARGS__)
 #define _SHARER_DECLARE_CALL2(f, t, n, ...)   _SHARER_DECLARE_CALL_BASE(f, t, n), _SHARER_DECLARE_CALL1(f, __VA_ARGS__)
 #define _SHARER_DECLARE_CALL1(f, t, n)        _SHARER_DECLARE_CALL_BASE(f, t, n)
@@ -76,13 +196,13 @@
 
 #define Sharer_ShareFunction(returnType, functionName, ...)    \
 if (Sharer.functionList.count < _SHARER_MAX_FUNCTION_COUNT) {\
-    _SHARER_GET_OVERRIDE(__VA_ARGS__, _SHARER_DECLARE_STATIC3, _SHARER_DECLARE_STATIC2_, _SHARER_DECLARE_STATIC2, _SHARER_DECLARE_STATIC1_, _SHARER_DECLARE_STATIC1, _SHARER_DECLARE_STATIC0)(functionName, __VA_ARGS__);\
+    _SHARER_GET_OVERRIDE(__VA_ARGS__, _SHARER_DECLARE_STATIC10, _SHARER_DECLARE_STATIC9_, _SHARER_DECLARE_STATIC9,  _SHARER_DECLARE_STATIC8_, _SHARER_DECLARE_STATIC8,  _SHARER_DECLARE_STATIC7_, _SHARER_DECLARE_STATIC7,  _SHARER_DECLARE_STATIC6_, _SHARER_DECLARE_STATIC6,  _SHARER_DECLARE_STATIC5_, _SHARER_DECLARE_STATIC5,  _SHARER_DECLARE_STATIC4_, _SHARER_DECLARE_STATIC4,  _SHARER_DECLARE_STATIC3_, _SHARER_DECLARE_STATIC3,  _SHARER_DECLARE_STATIC2_, _SHARER_DECLARE_STATIC2, _SHARER_DECLARE_STATIC1_, _SHARER_DECLARE_STATIC1, _SHARER_DECLARE_STATIC0)(functionName, __VA_ARGS__);\
     static returnType functionName ## _ret;\
     static const SharerClass::_SharerFunctionArgument functionName ## _args[] = {\
-    _SHARER_GET_OVERRIDE(__VA_ARGS__, _SHARER_DECLARE_ARG3, _SHARER_DECLARE_ARG2_, _SHARER_DECLARE_ARG2, _SHARER_DECLARE_ARG1_, _SHARER_DECLARE_ARG1, _SHARER_DECLARE_ARG0)(functionName, __VA_ARGS__)\
+    _SHARER_GET_OVERRIDE(__VA_ARGS__, _SHARER_DECLARE_ARG10, _SHARER_DECLARE_ARG9_, _SHARER_DECLARE_ARG9,  _SHARER_DECLARE_ARG8_, _SHARER_DECLARE_ARG8,  _SHARER_DECLARE_ARG7_, _SHARER_DECLARE_ARG7,  _SHARER_DECLARE_ARG6_, _SHARER_DECLARE_ARG6,  _SHARER_DECLARE_ARG5_, _SHARER_DECLARE_ARG5,  _SHARER_DECLARE_ARG4_, _SHARER_DECLARE_ARG4,  _SHARER_DECLARE_ARG3_, _SHARER_DECLARE_ARG3,  _SHARER_DECLARE_ARG2_, _SHARER_DECLARE_ARG2, _SHARER_DECLARE_ARG1_, _SHARER_DECLARE_ARG1, _SHARER_DECLARE_ARG0)(functionName, __VA_ARGS__)\
 };\
 \
-    Sharer.functionList.functions[Sharer.functionList.count].name = PSTR(#functionName);\
+	Sharer.functionList.functions[Sharer.functionList.count].name = PSTR(#functionName);\
         \
     Sharer.functionList.functions[Sharer.functionList.count].Arguments = functionName ## _args;\
         \
@@ -92,7 +212,7 @@ if (Sharer.functionList.count < _SHARER_MAX_FUNCTION_COUNT) {\
     Sharer.functionList.functions[Sharer.functionList.count].returnValue.pointer = & functionName ##_ret;\
 \
     Sharer.functionList.functions[Sharer.functionList.count].pointer = []() {\
-        functionName ## _ret = functionName (_SHARER_GET_OVERRIDE(__VA_ARGS__, _SHARER_DECLARE_CALL3, _SHARER_DECLARE_CALL2_, _SHARER_DECLARE_CALL2, _SHARER_DECLARE_CALL1_, _SHARER_DECLARE_CALL1, _SHARER_DECLARE_CALL0)(functionName, __VA_ARGS__) );\
+        functionName ## _ret = functionName (_SHARER_GET_OVERRIDE(__VA_ARGS__, _SHARER_DECLARE_CALL10, _SHARER_DECLARE_CALL9_, _SHARER_DECLARE_CALL9,  _SHARER_DECLARE_CALL8_, _SHARER_DECLARE_CALL8,  _SHARER_DECLARE_CALL7_, _SHARER_DECLARE_CALL7,  _SHARER_DECLARE_CALL6_, _SHARER_DECLARE_CALL6,  _SHARER_DECLARE_CALL5_, _SHARER_DECLARE_CALL5,  _SHARER_DECLARE_CALL4_, _SHARER_DECLARE_CALL4,  _SHARER_DECLARE_CALL3_, _SHARER_DECLARE_CALL3,  _SHARER_DECLARE_CALL2_, _SHARER_DECLARE_CALL2, _SHARER_DECLARE_CALL1_, _SHARER_DECLARE_CALL1, _SHARER_DECLARE_CALL0)(functionName, __VA_ARGS__) );\
     };\
         \
     Sharer.functionList.count++;\
@@ -101,9 +221,9 @@ if (Sharer.functionList.count < _SHARER_MAX_FUNCTION_COUNT) {\
 
 #define Sharer_ShareVoid(functionName, ...)    \
 if (Sharer.functionList.count < _SHARER_MAX_FUNCTION_COUNT) {\
-    _SHARER_GET_OVERRIDE(__VA_ARGS__, _SHARER_DECLARE_STATIC3, _SHARER_DECLARE_STATIC2_, _SHARER_DECLARE_STATIC2, _SHARER_DECLARE_STATIC1_, _SHARER_DECLARE_STATIC1, _SHARER_DECLARE_STATIC0)(functionName, __VA_ARGS__);\
+    _SHARER_GET_OVERRIDE(__VA_ARGS__, _SHARER_DECLARE_STATIC10, _SHARER_DECLARE_STATIC9_, _SHARER_DECLARE_STATIC9,  _SHARER_DECLARE_STATIC8_, _SHARER_DECLARE_STATIC8,  _SHARER_DECLARE_STATIC7_, _SHARER_DECLARE_STATIC7,  _SHARER_DECLARE_STATIC6_, _SHARER_DECLARE_STATIC6,  _SHARER_DECLARE_STATIC5_, _SHARER_DECLARE_STATIC5,  _SHARER_DECLARE_STATIC4_, _SHARER_DECLARE_STATIC4,  _SHARER_DECLARE_STATIC3_, _SHARER_DECLARE_STATIC3,  _SHARER_DECLARE_STATIC2_, _SHARER_DECLARE_STATIC2, _SHARER_DECLARE_STATIC1_, _SHARER_DECLARE_STATIC1, _SHARER_DECLARE_STATIC0)(functionName, __VA_ARGS__);\
     static const SharerClass::_SharerFunctionArgument functionName ## _args[] = {\
-    _SHARER_GET_OVERRIDE(__VA_ARGS__, _SHARER_DECLARE_ARG3, _SHARER_DECLARE_ARG2_, _SHARER_DECLARE_ARG2, _SHARER_DECLARE_ARG1_, _SHARER_DECLARE_ARG1, _SHARER_DECLARE_ARG0)(functionName, __VA_ARGS__)\
+    _SHARER_GET_OVERRIDE(__VA_ARGS__, _SHARER_DECLARE_ARG10, _SHARER_DECLARE_ARG9_, _SHARER_DECLARE_ARG9,  _SHARER_DECLARE_ARG8_, _SHARER_DECLARE_ARG8,  _SHARER_DECLARE_ARG7_, _SHARER_DECLARE_ARG7,  _SHARER_DECLARE_ARG6_, _SHARER_DECLARE_ARG6,  _SHARER_DECLARE_ARG5_, _SHARER_DECLARE_ARG5,  _SHARER_DECLARE_ARG4_, _SHARER_DECLARE_ARG4,  _SHARER_DECLARE_ARG3_, _SHARER_DECLARE_ARG3,  _SHARER_DECLARE_ARG2_, _SHARER_DECLARE_ARG2, _SHARER_DECLARE_ARG1_, _SHARER_DECLARE_ARG1, _SHARER_DECLARE_ARG0)(functionName, __VA_ARGS__)\
 };\
 \
     Sharer.functionList.functions[Sharer.functionList.count].name = PSTR(#functionName);\
@@ -116,7 +236,7 @@ if (Sharer.functionList.count < _SHARER_MAX_FUNCTION_COUNT) {\
     Sharer.functionList.functions[Sharer.functionList.count].returnValue.pointer = 0;\
 \
     Sharer.functionList.functions[Sharer.functionList.count].pointer = []() {\
-        functionName (_SHARER_GET_OVERRIDE(__VA_ARGS__, _SHARER_DECLARE_CALL3, _SHARER_DECLARE_CALL2_, _SHARER_DECLARE_CALL2, _SHARER_DECLARE_CALL1_, _SHARER_DECLARE_CALL1, _SHARER_DECLARE_CALL0)(functionName, __VA_ARGS__) );\
+        functionName (_SHARER_GET_OVERRIDE(__VA_ARGS__, _SHARER_DECLARE_CALL10, _SHARER_DECLARE_CALL9_, _SHARER_DECLARE_CALL9,  _SHARER_DECLARE_CALL8_, _SHARER_DECLARE_CALL8,  _SHARER_DECLARE_CALL7_, _SHARER_DECLARE_CALL7,  _SHARER_DECLARE_CALL6_, _SHARER_DECLARE_CALL6,  _SHARER_DECLARE_CALL5_, _SHARER_DECLARE_CALL5,  _SHARER_DECLARE_CALL4_, _SHARER_DECLARE_CALL4,  _SHARER_DECLARE_CALL3_, _SHARER_DECLARE_CALL3,  _SHARER_DECLARE_CALL2_, _SHARER_DECLARE_CALL2, _SHARER_DECLARE_CALL1_, _SHARER_DECLARE_CALL1, _SHARER_DECLARE_CALL0)(functionName, __VA_ARGS__) );\
     };\
         \
     Sharer.functionList.count++;\
@@ -124,27 +244,53 @@ if (Sharer.functionList.count < _SHARER_MAX_FUNCTION_COUNT) {\
 }
 
 
-#define _SHARER_ENUM_COMMAND			\
+#define Sharer_ShareVariable(variableType, variable) \
+	Sharer.variableList.variables[Sharer.variableList.count].name = PSTR(#variable);\
+	Sharer.variableList.variables[Sharer.variableList.count].value.pointer = (void*)& variable;\
+	Sharer.variableList.variables[Sharer.variableList.count].value.type = SharerClass::_SharerFunctionArgType::Type ## variableType;\
+	Sharer.variableList.count++;\
+
+
+#define _SHARER_ENUM_COMMAND				\
 					None = 0x00,			\
 					FunctionCount,			\
 					FunctionPrototype,		\
 					AllFunctionsPrototype,	\
 					CallFunction,			\
-					ReadVariable,			\
-					WriteVariable,			\
-					SubscribeVariable,		\
-					UnsubscribeVariable,		\
+					AllVariables,			\
+					ReadVariables,			\
+					WriteVariables,			\
 
 
 class SharerClass : public Stream
 {
 public :
+// Supported types
 	enum class _SharerFunctionArgType : byte {
-		TypeVoid,
-		Typeint,
-		Typefloat,
+		TypeVoid = 0,
+		Typebool = 1,
+		Typeint8_t = 2,
+		Typeuint8_t = 3,
+		Typeint16_t = 4,
+		Typeuint16_t = 5,
+		Typeint32_t = 6,
+		Typeuint32_t = 7,
+		Typeint64_t = 8,
+		Typeuint64_t = 9,
+		Typefloat = 10,
+		Typedouble = 11,
+		
+		Typebyte = Typeint8_t,
+		Typeint = Typeint16_t,
+		Typesigned = Typeint16_t,
+		Typelong = Typeint32_t,
+		Typeshort = Typeint8_t,
+		Typechar = Typeuint8_t,
+		Typeword = Typeuint16_t,
+		Typeboolean = Typebool,
 	};
 
+// Types for function sharing
 	typedef void(*_sharer_void_ptr)(void);
 
 	typedef struct {
@@ -171,6 +317,19 @@ public :
 		_SharerFunction functions[_SHARER_MAX_FUNCTION_COUNT];
 	} _SharerFunctionList;
 
+
+// Types for variable sharing
+	typedef struct {
+		const char* name;
+		_SharerPointerValue value;
+	} _SharerVariable;
+
+	typedef struct {
+		int count;
+		_SharerVariable variables[_SHARER_MAX_VARIABLE_COUNT];
+	}_SharerVariableList;
+
+
 protected:
 	enum class _SharerReceiveState {
 		Free,
@@ -187,12 +346,18 @@ protected:
 		_SHARER_ENUM_COMMAND
 
 		Error = 0x80,
-		SubscriptionValues,
+		Ready,
 	};
 
 	enum class _SharerCallFunctionStatus {
 		OK,
 		FunctionIdOutOfRange,
+		UnknownType,
+	};
+
+	enum class _SharerReadVariableStatus {
+		OK,
+		VariableIdOutOfRange,
 		UnknownType,
 	};
 
@@ -229,6 +394,12 @@ protected:
 	// write the description of the idth function in the list
 	void _printFunctionPrototype(int id);
 
+	void _printFunctionsPrototype();
+
+	void _printInfos();
+
+	void _printVariablesDefinition();
+
 	int _complexCommandStep;
 
 	void _callFunctionAndAnswer(_SharerFunction* fnc);
@@ -244,11 +415,14 @@ protected:
 
 	Stream* _parentStream = &Serial;
 
+	// event that notify Sharer is ready has been sent
+	bool _readyEventSent = false;
 public:
 
 	SharerClass() { }
 
 	_SharerFunctionList functionList;
+	_SharerVariableList variableList;
 
 	void init(Stream*);
 	void init(unsigned long baud);

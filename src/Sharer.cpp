@@ -85,6 +85,16 @@ void SharerClass::_sendHeader(_SharerSentCommand cmd) {
 void SharerClass::run() {
 	if (_parentStream == NULL) return;
 
+	if (!_readyEventSent) {
+		_sendHeader(_SharerSentCommand::Ready);
+		_parentStream->write((byte)0);
+		//_printInfos();
+		//_printFunctionsPrototype();
+		//_printVariablesDefinition();
+		_endSend();
+		_readyEventSent = true;
+	}
+
 
 	for (int i = 0; i < _SHARER_MAX_BYTE_READ_PER_RUN; i++)
 	{
@@ -141,15 +151,27 @@ void SharerClass::_rollBackCommand() {
 int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 	switch (type)
 	{
-	case _SharerFunctionArgType::Typeint:
-		return sizeof(int);
-		break;
+	case _SharerFunctionArgType::Typeint8_t:
+	case _SharerFunctionArgType::Typeuint8_t:
+	case _SharerFunctionArgType::Typebool:
+		return 1;
+
+	case _SharerFunctionArgType::Typeint16_t:
+	case _SharerFunctionArgType::Typeuint16_t:
+		return 2;
+
+	case _SharerFunctionArgType::Typeint32_t:
+	case _SharerFunctionArgType::Typeuint32_t:
 	case _SharerFunctionArgType::Typefloat:
-		return sizeof(float);
-		break;
+		return 4;
+
+	case _SharerFunctionArgType::Typeint64_t:
+	case _SharerFunctionArgType::Typeuint64_t:
+	case _SharerFunctionArgType::Typedouble:
+		return 8;
+
 	default:
 		return 0;
-		break;
 	}
 }
 
@@ -166,10 +188,13 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 		case SharerClass::_SharerReceivedCommand::AllFunctionsPrototype:
 			_sendHeader();
 			_parentStream->write((uint8_t*)&functionList.count, 2);
-			for (int i = 0; i < functionList.count; i++) {
-				_printFunctionPrototype(i);
-			}
+			_printFunctionsPrototype();
 			_endSend();
+			break;
+		case SharerClass::_SharerReceivedCommand::AllVariables:
+			_sendHeader();
+			_printVariablesDefinition();
+			_endSend();		
 			break;
 		default:
 			// else, it is a complex command with arguments to read
@@ -187,9 +212,10 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 	}
 
 	void SharerClass::_handleComplexCommand(byte receiveByte) {
-		static byte stack[4]; // a stack for complex commands to store values
+		static byte stack[6]; // a stack for complex commands to store values
 
-#define STACK_FNC_ID (*((int*)stack)) // usefull for commands that have to retain function ID
+#define STACK_OBJ_ID (*((int*)stack)) // usefull for commands that have to retain function ID or variable ID
+#define STACK_OBJ_COUNT (*((int*)&stack[2])) // usefull for commands that have to retain a count int in index 2 and 3
 
 		switch (_lastReceivedCommand)
 		{
@@ -208,8 +234,8 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 				_sendHeader();
 
 				// if the asked function id is in the function list
-				if (STACK_FNC_ID < functionList.count) {
-					_printFunctionPrototype(STACK_FNC_ID);
+				if (STACK_OBJ_ID < functionList.count) {
+					_printFunctionPrototype(STACK_OBJ_ID);
 				}
 				else {
 					_parentStream->write(0xff);
@@ -237,15 +263,15 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 				stack[1] = receiveByte;
 
 				// raise error if id is out of range
-				if (STACK_FNC_ID >= functionList.count) {
+				if (STACK_OBJ_ID >= functionList.count) {
 					_sendHeader();
 					_parentStream->write((byte)_SharerCallFunctionStatus::FunctionIdOutOfRange);
 					_endSend();
 				}
 				else {
-					if (functionList.functions[STACK_FNC_ID].argumentCount == 0) {
+					if (functionList.functions[STACK_OBJ_ID].argumentCount == 0) {
 						// call function and answer
-						_callFunctionAndAnswer(&functionList.functions[STACK_FNC_ID]);
+						_callFunctionAndAnswer(&functionList.functions[STACK_OBJ_ID]);
 					}
 					else {
 						stack[2] = 0;
@@ -257,7 +283,7 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 
 			case 2: // Read arguments
 				_SharerFunction* fnc;
-				fnc = &functionList.functions[STACK_FNC_ID]; // pointer to the struct that describes the function
+				fnc = &functionList.functions[STACK_OBJ_ID]; // pointer to the struct that describes the function
 
 				const _SharerFunctionArgument* arg;
 				arg = &fnc->Arguments[stack[2]]; // pointer to the current argument
@@ -283,6 +309,13 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 							_callFunctionAndAnswer(fnc);
 						}
 					}
+					else {
+						_parentStream->write(*(byte*)((int)(arg->value.pointer) + (int)stack[3]));
+						_parentStream->write(stack[3]);
+						_parentStream->write(*(byte*)(arg->value.pointer));
+						_parentStream->write(receiveByte);
+
+					}
 				}
 				else {
 					// send unknown type return status
@@ -292,7 +325,6 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 					_parentStream->write((byte)arg->value.type);
 					_endSend();
 				}
-#undef STACK_FNC_ID
 
 				break;
 			default:
@@ -300,33 +332,134 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 			}
 
 			break;
-		case SharerClass::_SharerReceivedCommand::ReadVariable:
-			DEBUG("ReadVariable", "");
-			_sendHeader();
+		case SharerClass::_SharerReceivedCommand::ReadVariables:
+		case SharerClass::_SharerReceivedCommand::WriteVariables:
+			// Stack :
+			// [0][1] int that stores the variable id
+			// [2][3] int that stores the variable count
+			// [4] offset of the current write
+			// [5] size of the current variable
 
-			_endSend();
-			break;
-		case SharerClass::_SharerReceivedCommand::WriteVariable:
-			DEBUG("WriteVariable", "");
-			_sendHeader();
+			switch (_complexCommandStep) {
+			case 0:
+				stack[2] = receiveByte; // store variable number to read low byte
+				_complexCommandStep++;
+				break;
+			case 1:
+				stack[3] = receiveByte; // store variable number to read high byte
 
-			_endSend();
-			break;
-		case SharerClass::_SharerReceivedCommand::SubscribeVariable:
-			DEBUG("SubscribeVariable", "");
-			_sendHeader();
+				_sendHeader();
 
-			_endSend();
-			break;
-		case SharerClass::_SharerReceivedCommand::UnsubscribeVariable:
-			DEBUG("UnsubscribeVariable", "");
-			_sendHeader();
+				if (STACK_OBJ_COUNT > 0) {
+					_complexCommandStep++;
+				}
+				else { // if no functions to read
+					_endSend();
+				}
+				break;
+			case 2:
+				stack[0] = receiveByte; // store variable id to read low byte
+				_complexCommandStep++;
+				break;
+			case 3:
+			{
+				stack[1] = receiveByte; // store variable id to read low byte
 
-			_endSend();
+				int variableId = STACK_OBJ_ID;
+
+				if (variableId >= 0 && variableId < variableList.count) {
+					int varSize = _sizeof(variableList.variables[variableId].value.type);
+
+					// if the returned type is known
+					if (varSize > 0) {
+						if (_lastReceivedCommand == SharerClass::_SharerReceivedCommand::ReadVariables) { // for reading send value
+							_parentStream->write((byte)_SharerReadVariableStatus::OK);
+							for (int i = 0; i < varSize; i++) {
+								_parentStream->write(*(byte*)((int)(variableList.variables[variableId].value.pointer) + i));
+							}
+							_complexCommandStep--;
+						}
+						else { // for writing, go to next step 
+							_complexCommandStep++;
+							stack[4] = 0;
+							stack[5] = varSize;
+						}
+					}
+					else {
+						_parentStream->write((byte)_SharerReadVariableStatus::UnknownType);
+						_complexCommandStep--;
+					}
+				}
+				else {
+					_parentStream->write((byte)_SharerReadVariableStatus::VariableIdOutOfRange);
+					_complexCommandStep--;
+				}
+
+				if (_complexCommandStep != 4) {
+					// remained number of variable to read
+					int remain = --STACK_OBJ_COUNT;
+					
+					if (remain <= 0) {
+						_endSend();
+					}
+				}
+			}
+				break;
+			case 4:
+				*(byte*)((int)(variableList.variables[STACK_OBJ_ID].value.pointer) + stack[4]) = receiveByte;
+
+				stack[4]++;
+
+				if (stack[4] >= stack[5]) {
+					// remained number of variable to read
+					int remain = --STACK_OBJ_COUNT;
+
+					_parentStream->write((byte)_SharerReadVariableStatus::OK);
+
+					// if nothing else to read, terminate message
+					if (remain <= 0) {
+						_endSend();
+					}
+					else {
+						_complexCommandStep = 2;
+					}
+				}
+			default:
+				break;
+			}
 			break;
 		default:
 			_rollBackCommand();
 			break;
+#undef STACK_OBJ_ID
+#undef STACK_OBJ_COUNT
+		}
+
+	}
+
+
+	void SharerClass::_printFunctionsPrototype() {
+		for (int i = 0; i < functionList.count; i++) {
+			_printFunctionPrototype(i);
+		}
+	}
+
+
+	void SharerClass::_printInfos() {
+		_parentStream->write((byte)SHARER_VERSION_MAJOR);
+		_parentStream->write((byte)SHARER_VERSION_MINOR);
+		_parentStream->write((byte)SHARER_VERSION_FIX);
+		_printp(PSTR(BOARD));
+		_parentStream->print((long)SHARER_F_CPU);
+		_parentStream->print((int)SHARER_GCC_VERSION);
+		_parentStream->print((long)__cplusplus);
+	}
+
+	void SharerClass::_printVariablesDefinition() {
+		_parentStream->write((uint8_t*)&variableList.count, 2);
+		for (int i = 0; i < variableList.count; i++) {
+			_parentStream->write((byte)variableList.variables[i].value.type); // print variable type
+			_printp(variableList.variables[i].name); // print variable name
 		}
 
 	}
