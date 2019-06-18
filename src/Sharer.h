@@ -86,7 +86,7 @@
 #elif defined(ARDUINO_ARC32_TOOLS)       
 #define BOARD "101"
 #else
-#error "Unknown board"
+#define BOARD "Unknown board"
 #endif
 
 #endif
@@ -313,7 +313,7 @@ public :
 
 
 	typedef struct {
-		int count;
+		int16_t count;
 		_SharerFunction functions[_SHARER_MAX_FUNCTION_COUNT];
 	} _SharerFunctionList;
 
@@ -325,7 +325,7 @@ public :
 	} _SharerVariable;
 
 	typedef struct {
-		int count;
+		int16_t count;
 		_SharerVariable variables[_SHARER_MAX_VARIABLE_COUNT];
 	}_SharerVariableList;
 
@@ -364,8 +364,8 @@ protected:
 	void init();
 
 	byte _receiveBuffer[_SHARER_USER_RECEIVE_BUFFER_SIZE];
-	int _available = 0;
-	int _receiveIndex = 0;
+	int16_t _available = 0;
+	int16_t _receiveIndex = 0;
 
 	void _storeNewValue(byte value);
 
@@ -389,10 +389,10 @@ protected:
 
 	void _printp(const char *data);
 
-	int _sizeof(_SharerFunctionArgType type);
+	int16_t _sizeof(_SharerFunctionArgType type);
 
 	// write the description of the idth function in the list
-	void _printFunctionPrototype(int id);
+	void _printFunctionPrototype(int16_t id);
 
 	void _printFunctionsPrototype();
 
@@ -400,13 +400,13 @@ protected:
 
 	void _printVariablesDefinition();
 
-	int _complexCommandStep;
+	int16_t _complexCommandStep;
 
 	void _callFunctionAndAnswer(_SharerFunction* fnc);
 
 	void _handleComplexCommand(byte receiveByte);
 
-	inline int _receiveNextIndex() {
+	inline int16_t _receiveNextIndex() {
 		if (_receiveIndex < _SHARER_USER_RECEIVE_BUFFER_SIZE - 1) return _receiveIndex + 1;
 		else return 0;
 	};

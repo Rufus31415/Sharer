@@ -98,7 +98,7 @@ void SharerClass::run() {
 
 	for (int i = 0; i < _SHARER_MAX_BYTE_READ_PER_RUN; i++)
 	{
-		int receiveByte = _parentStream->read();
+		int16_t receiveByte = _parentStream->read();
 
 		if (receiveByte < 0) return;
 
@@ -148,7 +148,7 @@ void SharerClass::_rollBackCommand() {
 }
 
 
-int  SharerClass::_sizeof(_SharerFunctionArgType type) {
+int16_t  SharerClass::_sizeof(_SharerFunctionArgType type) {
 	switch (type)
 	{
 	case _SharerFunctionArgType::Typeint8_t:
@@ -214,8 +214,8 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 	void SharerClass::_handleComplexCommand(byte receiveByte) {
 		static byte stack[6]; // a stack for complex commands to store values
 
-#define STACK_OBJ_ID (*((int*)stack)) // usefull for commands that have to retain function ID or variable ID
-#define STACK_OBJ_COUNT (*((int*)&stack[2])) // usefull for commands that have to retain a count int in index 2 and 3
+#define STACK_OBJ_ID (*((int16_t*)stack)) // usefull for commands that have to retain function ID or variable ID
+#define STACK_OBJ_COUNT (*((int16_t*)&stack[2])) // usefull for commands that have to retain a count int in index 2 and 3
 
 		switch (_lastReceivedCommand)
 		{
@@ -288,7 +288,7 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 				const _SharerFunctionArgument* arg;
 				arg = &fnc->Arguments[stack[2]]; // pointer to the current argument
 
-				int size;
+				int16_t size;
 				size = _sizeof(arg->value.type);
 
 
@@ -365,10 +365,10 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 			{
 				stack[1] = receiveByte; // store variable id to read low byte
 
-				int variableId = STACK_OBJ_ID;
+				int16_t variableId = STACK_OBJ_ID;
 
 				if (variableId >= 0 && variableId < variableList.count) {
-					int varSize = _sizeof(variableList.variables[variableId].value.type);
+					int16_t varSize = _sizeof(variableList.variables[variableId].value.type);
 
 					// if the returned type is known
 					if (varSize > 0) {
@@ -397,7 +397,7 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 
 				if (_complexCommandStep != 4) {
 					// remained number of variable to read
-					int remain = --STACK_OBJ_COUNT;
+					int16_t remain = --STACK_OBJ_COUNT;
 					
 					if (remain <= 0) {
 						_endSend();
@@ -412,7 +412,7 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 
 				if (stack[4] >= stack[5]) {
 					// remained number of variable to read
-					int remain = --STACK_OBJ_COUNT;
+					int16_t remain = --STACK_OBJ_COUNT;
 
 					_parentStream->write((byte)_SharerReadVariableStatus::OK);
 
@@ -439,7 +439,7 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 
 
 	void SharerClass::_printFunctionsPrototype() {
-		for (int i = 0; i < functionList.count; i++) {
+		for (int16_t i = 0; i < functionList.count; i++) {
 			_printFunctionPrototype(i);
 		}
 	}
@@ -464,7 +464,7 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 
 	}
 
-	void SharerClass::_printFunctionPrototype(int id) {
+	void SharerClass::_printFunctionPrototype(int16_t id) {
 		auto fnc = &functionList.functions[id];
 		_parentStream->write(fnc->argumentCount);
 		_parentStream->write((byte)fnc->returnValue.type);
@@ -476,7 +476,7 @@ int  SharerClass::_sizeof(_SharerFunctionArgType type) {
 	}
 
 	void SharerClass::_callFunctionAndAnswer(_SharerFunction * fnc) {
-		int retSize = _sizeof(fnc->returnValue.type);
+		int16_t retSize = _sizeof(fnc->returnValue.type);
 
 		// if the return type is unknown
 		if ((retSize <= 0) && (fnc->returnValue.type != _SharerFunctionArgType::TypeVoid)) {
