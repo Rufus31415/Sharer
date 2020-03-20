@@ -1,4 +1,19 @@
-// Sharer.h
+/**************************************************************************/
+/*!
+	@file Sharer.h
+	License: MIT (see LICENSE)
+
+	Author: Rufus31415
+
+	Website: https://rufus31415/github.io
+
+	Sharer is a connector library that facilitates communication between an Arduino board and a desktop application (see Sharer.NET library).
+	Features :
+		- Desktop applicaion can Read/Write variable on Arduino
+		- Remote call function on Arduino with arguments and retrieve returned value in the desktop application
+		- Get board information
+*/
+/**************************************************************************/
 
 #ifndef _SHARER_h
 #define _SHARER_h
@@ -440,6 +455,7 @@ public:
 	size_t write(uint8_t);
 };
 
+// Sharer global instance defined in .cpp
 extern SharerClass Sharer;
 
 #endif
