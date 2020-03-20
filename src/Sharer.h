@@ -16,19 +16,19 @@
 //  --------------- Teensy -----------------
 
 #if defined(__AVR_ATmega32U4__)
-#define BOARD "Teensy 2.0"
+#define SHARER_BOARD "Teensy 2.0"
 #elif defined(__AVR_AT90USB1286__)       
-#define BOARD "Teensy++ 2.0"
+#define SHARER_BOARD "Teensy++ 2.0"
 #elif defined(__MK20DX128__)       
-#define BOARD "Teensy 3.0"
+#define SHARER_BOARD "Teensy 3.0"
 #elif defined(__MK20DX256__)       
-#define BOARD "Teensy 3.2" // and Teensy 3.1 (obsolete)
+#define SHARER_BOARD "Teensy 3.2" // and Teensy 3.1 (obsolete)
 #elif defined(__MKL26Z64__)       
-#define BOARD "Teensy LC"
+#define SHARER_BOARD "Teensy LC"
 #elif defined(__MK64FX512__)
-#define BOARD "Teensy 3.5"
+#define SHARER_BOARD "Teensy 3.5"
 #elif defined(__MK66FX1M0__)
-#define BOARD "Teensy 3.6"
+#define SHARER_BOARD "Teensy 3.6"
 #else
 #error "Unknown board"
 #endif
@@ -36,57 +36,57 @@
 #else // --------------- Arduino ------------------
 
 #if   defined(ARDUINO_AVR_ADK)       
-#define BOARD "Mega Adk"
+#define SHARER_BOARD "Mega Adk"
 #elif defined(ARDUINO_AVR_BT)    // Bluetooth
-#define BOARD "Bt"
+#define SHARER_BOARD "Bt"
 #elif defined(ARDUINO_AVR_DUEMILANOVE)       
-#define BOARD "Duemilanove"
+#define SHARER_BOARD "Duemilanove"
 #elif defined(ARDUINO_AVR_ESPLORA)       
-#define BOARD "Esplora"
+#define SHARER_BOARD "Esplora"
 #elif defined(ARDUINO_AVR_ETHERNET)       
-#define BOARD "Ethernet"
+#define SHARER_BOARD "Ethernet"
 #elif defined(ARDUINO_AVR_FIO)       
-#define BOARD "Fio"
+#define SHARER_BOARD "Fio"
 #elif defined(ARDUINO_AVR_GEMMA)
-#define BOARD "Gemma"
+#define SHARER_BOARD "Gemma"
 #elif defined(ARDUINO_AVR_LEONARDO)       
-#define BOARD "Leonardo"
+#define SHARER_BOARD "Leonardo"
 #elif defined(ARDUINO_AVR_LILYPAD)
-#define BOARD "Lilypad"
+#define SHARER_BOARD "Lilypad"
 #elif defined(ARDUINO_AVR_LILYPAD_USB)
-#define BOARD "Lilypad Usb"
+#define SHARER_BOARD "Lilypad Usb"
 #elif defined(ARDUINO_AVR_MEGA)       
-#define BOARD "Mega"
+#define SHARER_BOARD "Mega"
 #elif defined(ARDUINO_AVR_MEGA2560)       
-#define BOARD "Mega 2560"
+#define SHARER_BOARD "Mega 2560"
 #elif defined(ARDUINO_AVR_MICRO)       
-#define BOARD "Micro"
+#define SHARER_BOARD "Micro"
 #elif defined(ARDUINO_AVR_MINI)       
-#define BOARD "Mini"
+#define SHARER_BOARD "Mini"
 #elif defined(ARDUINO_AVR_NANO)       
-#define BOARD "Nano"
+#define SHARER_BOARD "Nano"
 #elif defined(ARDUINO_AVR_NG)       
-#define BOARD "NG"
+#define SHARER_BOARD "NG"
 #elif defined(ARDUINO_AVR_PRO)       
-#define BOARD "Pro"
+#define SHARER_BOARD "Pro"
 #elif defined(ARDUINO_AVR_ROBOT_CONTROL)       
-#define BOARD "Robot Ctrl"
+#define SHARER_BOARD "Robot Ctrl"
 #elif defined(ARDUINO_AVR_ROBOT_MOTOR)       
-#define BOARD "Robot Motor"
+#define SHARER_BOARD "Robot Motor"
 #elif defined(ARDUINO_AVR_UNO)       
-#define BOARD "Uno"
+#define SHARER_BOARD "Uno"
 #elif defined(ARDUINO_AVR_YUN)       
-#define BOARD "Yun"
+#define SHARER_BOARD "Yun"
 
 // These boards must be installed separately:
 #elif defined(ARDUINO_SAM_DUE)       
-#define BOARD "Due"
+#define SHARER_BOARD "Due"
 #elif defined(ARDUINO_SAMD_ZERO)       
-#define BOARD "Zero"
+#define SHARER_BOARD "Zero"
 #elif defined(ARDUINO_ARC32_TOOLS)       
-#define BOARD "101"
+#define SHARER_BOARD "101"
 #else
-#define BOARD "Unknown board"
+#define SHARER_BOARD "Unknown board"
 #endif
 
 #endif
@@ -245,11 +245,12 @@ if (Sharer.functionList.count < _SHARER_MAX_FUNCTION_COUNT) {\
 
 
 #define Sharer_ShareVariable(variableType, variable) \
+if (Sharer.variableList.count < _SHARER_MAX_VARIABLE_COUNT) {\
 	Sharer.variableList.variables[Sharer.variableList.count].name = PSTR(#variable);\
 	Sharer.variableList.variables[Sharer.variableList.count].value.pointer = (void*)& variable;\
 	Sharer.variableList.variables[Sharer.variableList.count].value.type = SharerClass::_SharerFunctionArgType::Type ## variableType;\
 	Sharer.variableList.count++;\
-
+} \
 
 #define _SHARER_ENUM_COMMAND				\
 					None = 0x00,			\
@@ -260,6 +261,7 @@ if (Sharer.functionList.count < _SHARER_MAX_FUNCTION_COUNT) {\
 					AllVariables,			\
 					ReadVariables,			\
 					WriteVariables,			\
+					GetInfos,				\
 
 
 class SharerClass : public Stream
@@ -346,7 +348,6 @@ protected:
 		_SHARER_ENUM_COMMAND
 
 		Error = 0x80,
-		Ready,
 	};
 
 	enum class _SharerCallFunctionStatus {
@@ -415,8 +416,8 @@ protected:
 
 	Stream* _parentStream = &Serial;
 
-	// event that notify Sharer is ready has been sent
-	bool _readyEventSent = false;
+	bool _initDone = false;
+
 public:
 
 	SharerClass() { }

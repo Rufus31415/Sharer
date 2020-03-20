@@ -14,7 +14,7 @@ int SharerClass::peek(void) {
 		return _receiveBuffer[_receiveNextIndex()];
 	}
 	else {
-		return -1;
+		return -1; 
 	}
 }
 
@@ -85,16 +85,11 @@ void SharerClass::_sendHeader(_SharerSentCommand cmd) {
 void SharerClass::run() {
 	if (_parentStream == NULL) return;
 
-	if (!_readyEventSent) {
-		_sendHeader(_SharerSentCommand::Ready);
-		_parentStream->write((byte)0);
-		//_printInfos();
-		//_printFunctionsPrototype();
-		//_printVariablesDefinition();
-		_endSend();
-		_readyEventSent = true;
+	if (!_initDone) {
+		_sendHeader(_SharerSentCommand::GetInfos);
+		_printInfos();
+		_initDone = true;
 	}
-
 
 	for (int i = 0; i < _SHARER_MAX_BYTE_READ_PER_RUN; i++)
 	{
@@ -194,7 +189,12 @@ int16_t  SharerClass::_sizeof(_SharerFunctionArgType type) {
 		case SharerClass::_SharerReceivedCommand::AllVariables:
 			_sendHeader();
 			_printVariablesDefinition();
-			_endSend();		
+			_endSend();
+			break;
+		case SharerClass::_SharerReceivedCommand::GetInfos:
+			_sendHeader();
+			_printInfos();
+			_endSend();
 			break;
 		default:
 			// else, it is a complex command with arguments to read
@@ -308,13 +308,6 @@ int16_t  SharerClass::_sizeof(_SharerFunctionArgType type) {
 						if (stack[2] >= fnc->argumentCount) {
 							_callFunctionAndAnswer(fnc);
 						}
-					}
-					else {
-						_parentStream->write(*(byte*)((int)(arg->value.pointer) + (int)stack[3]));
-						_parentStream->write(stack[3]);
-						_parentStream->write(*(byte*)(arg->value.pointer));
-						_parentStream->write(receiveByte);
-
 					}
 				}
 				else {
@@ -446,13 +439,31 @@ int16_t  SharerClass::_sizeof(_SharerFunctionArgType type) {
 
 
 	void SharerClass::_printInfos() {
+		byte data[4];
+
 		_parentStream->write((byte)SHARER_VERSION_MAJOR);
 		_parentStream->write((byte)SHARER_VERSION_MINOR);
 		_parentStream->write((byte)SHARER_VERSION_FIX);
-		_printp(PSTR(BOARD));
-		_parentStream->print((long)SHARER_F_CPU);
-		_parentStream->print((int)SHARER_GCC_VERSION);
-		_parentStream->print((long)__cplusplus);
+		_printp(PSTR(SHARER_BOARD));
+
+		*(long*)data = SHARER_F_CPU;
+		_parentStream->write(data, 4);
+
+		*(int*)data = SHARER_GCC_VERSION;
+		_parentStream->write(data, 2);
+
+		*(long*)data = SHARER___cplusplus;
+		_parentStream->write(data, 4);
+
+		_parentStream->write((byte*)&functionList.count, 2);
+
+		*(int*)data = _SHARER_MAX_FUNCTION_COUNT;
+		_parentStream->write(data, 2);
+
+		_parentStream->write((byte*)&variableList.count, 2);
+
+		*(int*)data = _SHARER_MAX_VARIABLE_COUNT;
+		_parentStream->write(data, 2);
 	}
 
 	void SharerClass::_printVariablesDefinition() {
@@ -504,5 +515,6 @@ int16_t  SharerClass::_sizeof(_SharerFunctionArgType type) {
 			_endSend();
 		}
 	}
+
 SharerClass Sharer;
 

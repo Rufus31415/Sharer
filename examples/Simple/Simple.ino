@@ -11,6 +11,8 @@ float Square(float a) {
 	return a * a;
 }
 
+volatile int a = 12;
+
 // Init Sharer and declare your function to share
 void setup() {
 	Sharer.init(115200); // Init Serial communication with 115200 bauds
@@ -20,9 +22,23 @@ void setup() {
 
 	// Expose this function to Sharer : float Square(float a)
 	Sharer_ShareFunction(float, Square, float, a);
+
+	Sharer_ShareVariable(int, a);
+
+	pinMode(13, OUTPUT);
+	digitalWrite(13, true);
+
 }
 
 // Run Sharer engine in the main Loop
 void loop() {
 	Sharer.run();
+
+	
+	int val = Sharer.read();
+	if (val > 0) {
+		Sharer.write(val);
+	}
+	
+	
 }
