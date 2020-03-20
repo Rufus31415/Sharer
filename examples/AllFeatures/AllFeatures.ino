@@ -16,6 +16,10 @@ void SetLEDState(bool state) {
 	digitalWrite(13, state);
 }
 
+int an_integer = 12;
+bool a_boolean = true;
+long a_long = 0;
+
 // Init Sharer and declare your function to share
 void setup() {
 	Sharer.init(115200); // Init Serial communication with 115200 bauds
@@ -35,9 +39,24 @@ void setup() {
 	// Expose this function without returned parameters : void SetLEDState(bool state)
 	Sharer_ShareVoid(SetLEDState, bool, state);
 
+	// Share the built-in millisecond function
+	Sharer_ShareVoid(delay, uint32_t, millisecond);
+
+	// Share variables for read/write from desktop application
+	Sharer_ShareVariable(int, an_integer);
+	Sharer_ShareVariable(bool, a_boolean);
+	Sharer_ShareVariable(long, a_long);
 }
 
 // Run Sharer engine in the main Loop
 void loop() {
 	Sharer.run();
+
+	// If data available, just write back them
+	int val = Sharer.read();
+	if (val > 0) {
+		Sharer.write(val);
+	}
+	
+	a_long++; // ;)
 }

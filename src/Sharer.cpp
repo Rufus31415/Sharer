@@ -19,40 +19,40 @@
 
 
 int SharerClass::available(void) {
-	return _available;
+	if (_userMessageTail > _userMessageHead) return _SHARER_USER_RECEIVE_BUFFER_SIZE + _userMessageHead - _userMessageTail;
+	else return _userMessageHead - _userMessageTail;
 }
 
 
 int SharerClass::peek(void) {
-	if (_available > 0) {
-		return _receiveBuffer[_receiveNextIndex()];
-	}
-	else {
-		return -1; 
-	}
+	if (_userMessageHead == _userMessageTail) return -1; // nothing to read
+	else return _receiveBuffer[_userMessageTail];
 }
 
 
 int SharerClass::read(void) {
+	if (_userMessageHead == _userMessageTail) return -1; // nothing to read
 
-	if (_available > 0) {
-		_receiveIndex = _receiveNextIndex();
-		_available--;
-		return _receiveBuffer[_receiveIndex];
-	}
-	else {
-		return -1;
-	}
+	// get next tail index
+	int next = _userMessageTail + 1; 
+	if (next >= _SHARER_USER_RECEIVE_BUFFER_SIZE) next = 0;
+
+	int data = _receiveBuffer[_userMessageTail];
+	_userMessageTail = next;
+
+	return data;
 }
 
 
 void SharerClass::flush(void) {
-	_available = 0;
+	_userMessageHead = 0;
+	_userMessageTail = 0;
 }
 
 
 size_t SharerClass::write(uint8_t x) {
-	return _parentStream->write(x);
+	if (SharerClass::_SharerReceiveState::Free == _receiveState) return  _parentStream->write(x);
+	else return -1;
 }
 
 
@@ -72,10 +72,13 @@ void SharerClass::init(Stream* parentStream) {
 }
 
 void SharerClass::_storeNewValue(byte value) {
-	if (!Full()) {
-		_receiveBuffer[_receiveNextIndex()] = value;
-		_available++;
-	}
+	int next = _getNextHeadIndex();
+
+	// if buffer is full
+	if (next < 0) return;
+
+	_receiveBuffer[_userMessageHead] = value;
+	_userMessageHead = next;
 }
 
 void SharerClass::_endSend() {

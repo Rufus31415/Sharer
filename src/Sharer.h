@@ -380,8 +380,6 @@ protected:
 	void init();
 
 	byte _receiveBuffer[_SHARER_USER_RECEIVE_BUFFER_SIZE];
-	int16_t _available = 0;
-	int16_t _receiveIndex = 0;
 
 	void _storeNewValue(byte value);
 
@@ -422,16 +420,23 @@ protected:
 
 	void _handleComplexCommand(byte receiveByte);
 
-	inline int16_t _receiveNextIndex() {
-		if (_receiveIndex < _SHARER_USER_RECEIVE_BUFFER_SIZE - 1) return _receiveIndex + 1;
-		else return 0;
-	};
-
 	_SharerReceiveState _receiveState = _SharerReceiveState::Free;
 
 	Stream* _parentStream = &Serial;
 
 	bool _initDone = false;
+
+	int _userMessageHead = 0;
+	int _userMessageTail = 0;
+
+	inline int _getNextHeadIndex() {
+		int next = _userMessageHead + 1; 
+		if (next >= _SHARER_USER_RECEIVE_BUFFER_SIZE) next = 0;
+
+		// if full
+		if (next == _userMessageTail) return -1;
+		else return next;
+	}
 
 public:
 
@@ -446,7 +451,7 @@ public:
 	void run();
 
 
-	inline bool Full() { return _available >= _SHARER_USER_RECEIVE_BUFFER_SIZE; };
+	inline bool Full() { return _getNextHeadIndex() < 0; };
 
 	int available();
 	int read();
