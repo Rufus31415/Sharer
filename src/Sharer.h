@@ -1,5 +1,12 @@
-/**************************************************************************/
+﻿/**************************************************************************/
 /*!
+				███████╗██╗  ██╗ █████╗ ██████╗ ███████╗██████╗
+				██╔════╝██║  ██║██╔══██╗██╔══██╗██╔════╝██╔══██╗
+				███████╗███████║███████║██████╔╝█████╗  ██████╔╝
+				╚════██║██╔══██║██╔══██║██╔══██╗██╔══╝  ██╔══██╗
+				███████║██║  ██║██║  ██║██║  ██║███████╗██║  ██║
+				╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+
 	@file Sharer.h
 	License: MIT (see LICENSE)
 
@@ -134,6 +141,9 @@
 #define _SHARER_START_COMMAND_CHAR	0x92
 
 
+// Here is a very complicated way of implementing param array (__VA_ARGS__) with C++ macros and counting the number of arguments
+// This allows to make macros Sharer_ShareFunction, Sharer_ShareVoid and Sharer_ShareVariable work.
+
 #define _SHARER_PP_NARG(...) \
          _SHARER_PP_NARG_(__VA_ARGS__,_SHARER_PP_RSEQ_N())
 #define _SHARER_PP_NARG_(...) \
@@ -190,8 +200,6 @@
 #define _SHARER_DECLARE_ARG2(f, t, n, ...)   _SHARER_DECLARE_ARG_BASE(f, t, n) _SHARER_DECLARE_ARG1(f, __VA_ARGS__)
 #define _SHARER_DECLARE_ARG1(f, t, n)        _SHARER_DECLARE_ARG_BASE(f, t, n)
 #define _SHARER_DECLARE_ARG0(...)  
-
-
 
 #define _SHARER_DECLARE_CALL_BASE(functionName, argumentType, argumentName) functionName ## _arg_ ## argumentName
 
@@ -395,7 +403,9 @@ protected:
 		_sendHeader((_SharerSentCommand)_lastReceivedCommand);
 	}
 
-	void _endSend();
+	_SharerReceiveState _receiveState = _SharerReceiveState::Free;
+
+	inline void _endSend() { _receiveState = _SharerReceiveState::Free; }
 
 	void _rollBackCommand();
 
@@ -420,8 +430,6 @@ protected:
 
 	void _handleComplexCommand(byte receiveByte);
 
-	_SharerReceiveState _receiveState = _SharerReceiveState::Free;
-
 	Stream* _parentStream = &Serial;
 
 	bool _initDone = false;
@@ -439,7 +447,6 @@ protected:
 	}
 
 public:
-
 	SharerClass() { }
 
 	_SharerFunctionList functionList;
@@ -449,7 +456,6 @@ public:
 	void init(unsigned long baud);
 
 	void run();
-
 
 	inline bool Full() { return _getNextHeadIndex() < 0; };
 

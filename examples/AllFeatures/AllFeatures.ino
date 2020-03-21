@@ -11,6 +11,7 @@ float Square(float a) {
 	return a * a;
 }
 
+// Set state of built-in board LED
 void SetLEDState(bool state) {
 	pinMode(13, OUTPUT);
 	digitalWrite(13, state);

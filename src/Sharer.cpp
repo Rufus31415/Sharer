@@ -1,5 +1,12 @@
-/**************************************************************************/
+﻿/**************************************************************************/
 /*!
+				███████╗██╗  ██╗ █████╗ ██████╗ ███████╗██████╗
+				██╔════╝██║  ██║██╔══██╗██╔══██╗██╔════╝██╔══██╗
+				███████╗███████║███████║██████╔╝█████╗  ██████╔╝
+				╚════██║██╔══██║██╔══██║██╔══██╗██╔══╝  ██╔══██╗
+				███████║██║  ██║██║  ██║██║  ██║███████╗██║  ██║
+				╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+
 	@file Sharer.cpp
 	License: MIT (see LICENSE)
 
@@ -17,19 +24,19 @@
 
 #include "Sharer.h"
 
-
+// Number of available bytes in the user message buffer
 int SharerClass::available(void) {
 	if (_userMessageTail > _userMessageHead) return _SHARER_USER_RECEIVE_BUFFER_SIZE + _userMessageHead - _userMessageTail;
 	else return _userMessageHead - _userMessageTail;
 }
 
-
+// Peek a byte in the user message buffer
 int SharerClass::peek(void) {
 	if (_userMessageHead == _userMessageTail) return -1; // nothing to read
 	else return _receiveBuffer[_userMessageTail];
 }
 
-
+// Read and pop a byte in the user message buffer (-1 if no adata available)
 int SharerClass::read(void) {
 	if (_userMessageHead == _userMessageTail) return -1; // nothing to read
 
@@ -43,13 +50,13 @@ int SharerClass::read(void) {
 	return data;
 }
 
-
+// Flush the user message buffer
 void SharerClass::flush(void) {
 	_userMessageHead = 0;
 	_userMessageTail = 0;
 }
 
-
+// Send a byte to Desktop application. Should not be used inside a shared function because Sharer is already busy (-1 is then returned)
 size_t SharerClass::write(uint8_t x) {
 	if (SharerClass::_SharerReceiveState::Free == _receiveState) return  _parentStream->write(x);
 	else return -1;
@@ -60,17 +67,20 @@ void SharerClass::init() {
 
 }
 
+// Init Sharer with default Serial communication
 void SharerClass::init(unsigned long baud) {
 	Serial.begin(baud);
 	_parentStream = &Serial;
 	init();
 }
 
+// Initialize Sharer with a custom stream like Serial2
 void SharerClass::init(Stream* parentStream) {
 	_parentStream = parentStream;
 	init();
 }
 
+// Push a new value in user message circular buffer
 void SharerClass::_storeNewValue(byte value) {
 	int next = _getNextHeadIndex();
 
@@ -81,15 +91,12 @@ void SharerClass::_storeNewValue(byte value) {
 	_userMessageHead = next;
 }
 
-void SharerClass::_endSend() {
-	_receiveState = _SharerReceiveState::Free;
-}
 
-
-
+// Comment/Uncomment this for debug purposes
 //#define DEBUG(msg, variable) 		Serial.print(msg); Serial.print(":"); Serial.println(variable);
 #define DEBUG(msg, variable) 
 
+// Send header of the Sharer protocole
 void SharerClass::_sendHeader(_SharerSentCommand cmd) {
 	DEBUG("_sendHeader", (byte)cmd);
 
@@ -99,6 +106,7 @@ void SharerClass::_sendHeader(_SharerSentCommand cmd) {
 	_parentStream->write(_lastReceivedCommandId);
 }
 
+// Main function to call inside Arduino Loop() function
 void SharerClass::run() {
 	if (_parentStream == NULL) return;
 
@@ -150,6 +158,7 @@ void SharerClass::run() {
 	}
 }
 
+// A command seems like a Sharer command but it was not, so store values in user message
 void SharerClass::_rollBackCommand() {
 	// the message was not a command, put data in buffer and go back to free state
 	DEBUG("NOT A COMMAND", "");
@@ -159,7 +168,7 @@ void SharerClass::_rollBackCommand() {
 	_receiveState = _SharerReceiveState::Free;
 }
 
-
+// Size of a Sharer type
 int16_t  SharerClass::_sizeof(_SharerFunctionArgType type) {
 	switch (type)
 	{
@@ -187,7 +196,8 @@ int16_t  SharerClass::_sizeof(_SharerFunctionArgType type) {
 	}
 }
 
-	void SharerClass::_handleSimpleCommand() {
+// Handle command without arguments to decode
+void SharerClass::_handleSimpleCommand() {
 		switch (_lastReceivedCommand)
 		{
 		case SharerClass::_SharerReceivedCommand::FunctionCount:
@@ -220,7 +230,8 @@ int16_t  SharerClass::_sizeof(_SharerFunctionArgType type) {
 		}
 	}
 
-	void SharerClass::_printp(const char *data)
+// Print a string stored in flash
+void SharerClass::_printp(const char *data)
 	{
 		while (pgm_read_byte(data) != 0x00) {
 			_parentStream->write(pgm_read_byte(data++));
@@ -228,7 +239,8 @@ int16_t  SharerClass::_sizeof(_SharerFunctionArgType type) {
 		_parentStream->write((byte)0);
 	}
 
-	void SharerClass::_handleComplexCommand(byte receiveByte) {
+// Decode and execute a command with arguments
+void SharerClass::_handleComplexCommand(byte receiveByte) {
 		static byte stack[6]; // a stack for complex commands to store values
 
 #define STACK_OBJ_ID (*((int16_t*)stack)) // usefull for commands that have to retain function ID or variable ID
@@ -447,14 +459,14 @@ int16_t  SharerClass::_sizeof(_SharerFunctionArgType type) {
 
 	}
 
-
+	// Print all function description
 	void SharerClass::_printFunctionsPrototype() {
 		for (int16_t i = 0; i < functionList.count; i++) {
 			_printFunctionPrototype(i);
 		}
 	}
 
-
+	// print board info
 	void SharerClass::_printInfos() {
 		byte data[4];
 
@@ -483,6 +495,7 @@ int16_t  SharerClass::_sizeof(_SharerFunctionArgType type) {
 		_parentStream->write(data, 2);
 	}
 
+	// Print all variables description
 	void SharerClass::_printVariablesDefinition() {
 		_parentStream->write((uint8_t*)&variableList.count, 2);
 		for (int i = 0; i < variableList.count; i++) {
@@ -492,6 +505,7 @@ int16_t  SharerClass::_sizeof(_SharerFunctionArgType type) {
 
 	}
 
+	// Print description of shared function at indice id
 	void SharerClass::_printFunctionPrototype(int16_t id) {
 		auto fnc = &functionList.functions[id];
 		_parentStream->write(fnc->argumentCount);
@@ -503,6 +517,7 @@ int16_t  SharerClass::_sizeof(_SharerFunctionArgType type) {
 		}
 	}
 
+	// Execute a function and reply
 	void SharerClass::_callFunctionAndAnswer(_SharerFunction * fnc) {
 		int16_t retSize = _sizeof(fnc->returnValue.type);
 
