@@ -11,7 +11,19 @@ float Square(float a) {
 	return a * a;
 }
 
-// Set state of built-in board LED
+// Turn built-in board LED on
+void TurnLEDOn(void) {
+	pinMode(13, OUTPUT);
+	digitalWrite(13, true);
+}
+
+// Turn built-in board LED off
+void TurnLEDOff(void) {
+	pinMode(13, OUTPUT);
+	digitalWrite(13, false);
+}
+
+// Set built-in board LED state
 void SetLEDState(bool state) {
 	pinMode(13, OUTPUT);
 	digitalWrite(13, state);
@@ -37,7 +49,12 @@ void setup() {
 	// Share the built-in digitalRead function
 	Sharer_ShareFunction(bool, digitalRead, uint8_t, pin);
 
-	// Expose this function without returned parameters : void SetLEDState(bool state)
+	// Share the built-in digitalRead function
+	Sharer_ShareFunction(uint32_t, millis);
+
+	// Expose this functions without returned parameters
+	Sharer_ShareVoid(TurnLEDOn);
+	Sharer_ShareVoid(TurnLEDOff);
 	Sharer_ShareVoid(SetLEDState, bool, state);
 
 	// Share the built-in millisecond function
