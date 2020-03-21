@@ -1,0 +1,27 @@
+name: CI
+
+on: 
+  push:
+    tags:
+    - 'v*'
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: nuget/setup-nuget@v1
+    - run: nuget restore $Env:GITHUB_WORKSPACE\Sharer_VS2019.sln
+    - name: Build
+      run: |
+        cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
+        .\MSBuild.exe $Env:GITHUB_WORKSPACE\Sharer_VS2019.sln -p:Configuration=Release
+    - name: zip example
+      run: 7z a -tzip -mx=9 $Env:GITHUB_WORKSPACE\Sharer.zip $Env:GITHUB_WORKSPACE\library.properties $Env:GITHUB_WORKSPACE\src $Env:GITHUB_WORKSPACE\examples
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: "Sharer.zip"
+        bodyFile: "Instructions.md"
+        token: ${{ secrets.GITHUB_TOKEN }}
