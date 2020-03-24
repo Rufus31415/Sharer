@@ -306,10 +306,6 @@ void loop() {
 	
 	// Write a single byte
 	Sharer.write(0x12);
-	
-	// Write a byte array
-	byte dataToSend[12];
-  	Sharer.write(dataToSend, 12);
 }
 ```
 
