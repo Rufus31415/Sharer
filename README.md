@@ -27,7 +27,20 @@
 </p>
 
 Sharer is both a <b>.NET and an Arduino Library</b>. It allows a desktop application to <b>read/write variables</b> and <b>remote call functions on Arduino</b>, using the Sharer protocole accross a serial communication.
+Sharer has initially been developped for the Ballcuber project (https://ballcuber.github.io), but it is now a standalone library ;).
 
+<p align="center">
+	<a href="https://github.com/Rufus31415/Sharer/releases">
+		<img alt="Download arduino library and examples" src="https://img.shields.io/badge/▼-Download%20Arduino%20library%20and%20examples-blue?logo=arduino&style=for-the-badge" />
+	</a>
+	<a href="https://github.com/Rufus31415/Sharer.NET/releases">
+		<img alt="Download .NET library and example" src="https://img.shields.io/badge/▼-Download%20.NET%20Library%20and%20examples-green?logo=c%20sharp&style=for-the-badge" />
+	</a>
+	<br/>
+	<a href="https://www.nuget.org/packages/Sharer">
+		<img alt="Download Nuget library" src="https://img.shields.io/badge/▼-Download%20Nuget%20.NET%20Library-20038d?logo=nuget&style=for-the-badge" />
+	</a>
+</p>
 
 # Overview
 ## Arduino code
@@ -130,7 +143,7 @@ Windows Forms example requires .NET Framework 3.5. It can be downloaded here : h
 #### Console cross-plateform example
 The console example run with .NET Core 3.0. But you don't need any runtime to execute it. The standalone console examples are available here :
 - Windows 64 bits : https://github.com/Rufus31415/Sharer.net/releases/latest/download/SharerConsoleExample_win-x64.zip
-- Windows 64 bits : https://github.com/Rufus31415/Sharer.net/releases/latest/download/SharerConsoleExample_win-x86.zip
+- Windows 32 bits : https://github.com/Rufus31415/Sharer.net/releases/latest/download/SharerConsoleExample_win-x86.zip
 - Windows ARM (for example Windows IOT for Raspberry PI) : https://github.com/Rufus31415/Sharer.net/releases/latest/download/SharerConsoleExample_win-arm.zip
 - Linux ARM (for example Raspbian for Raspberry PI) : https://github.com/Rufus31415/Sharer.net/releases/latest/download/SharerConsoleExample_linux-arm.zip
 - Linux 64 bits : https://github.com/Rufus31415/Sharer.net/releases/latest/download/SharerConsoleExample_linux-x64.zip
@@ -238,17 +251,96 @@ void setup() {
 ```
 
 ### Receive and send regular serial messages
+Sharer class inherits from [Stream](https://www.arduino.cc/reference/en/language/functions/communication/stream/), so you can use the following functions. Please, never use Sharer.print(), Sharer.println() or Sharer.write() inside a shared function, writting woud be ignored.
 
+``` C++
+void loop() {
+	Sharer.run();
+	
+	 //gets the number of bytes available in the stream
+	int available = Sharer.available();
+	
+	// reads last reveided byte (-1 if no data to read)
+	int lastByte = Sharer.read();
+	
+	// Empty the stream
+	Sharer.flush();
+	
+	// reads data from the serial buffer until the target is found
+	// returns, true if data is found
+	bool found = Sharer.find("string to find");
+	
+	//Returns the next byte of incoming serial data without removing it from the internal serial buffer
+	// Successive calls to peek() will return the same character
+	int nextByte = Sharer.peek();
+
+	// reads characters from the serial buffer into a String
+	String str = Sharer.readString();
+
+	// Looks for the next valid integer in the incoming serial
+	int lastInt = Sharer.parseInt();
+	lastInt = Sharer.parseInt(SKIP_ALL); // all characters other than digits or a minus sign are ignored when scanning the stream for an integer. This is the default mode
+	lastInt = Sharer.parseInt(SKIP_NONE); // nothing is skipped, and the stream is not touched unless the first waiting character is valid.
+	lastInt = Sharer.parseInt(SKIP_WHITESPACE); // only tabs, spaces, line feeds, and carriage returns are skipped.
+	
+	// returns the first valid floating point number from the Serial buffer
+	float lastFloat = Sharer.parseFloat();
+	lastFloat = Sharer.parseFloat(SKIP_ALL); // all characters other than a minus sign, decimal point, or digits are ignored when scanning the stream for a floating point number. This is the default mode.
+	lastFloat = Sharer.parseFloat(SKIP_NONE); // Nothing is skipped, and the stream is not touched unless the first waiting character is valid.
+	lastFloat = Sharer.parseFloat(SKIP_WHITESPACE); // only tabs, spaces, line feeds, and carriage returns are skipped.
+	
+	// Prints ASCII encoded string
+	Sharer.print(85); // sends the string "85"
+	Sharer.print(1.23456); // sends the string "1.23"
+	Sharer.print('N'); // sends the string "N"
+	Sharer.print("Hello world."); // sends the string "Hello world."
+	Sharer.print(78, BIN); // sends the string "1001110"
+	Sharer.print(78, OCT); // sends the string "116"
+	Sharer.print(78, DEC); // sends the string "78"
+	Sharer.print(78, HEX); // sends the string "4E"
+	Sharer.print(1.23456, 0); // sends the string "1"
+	Sharer.print(1.23456, 2); // sends the string "1.23"
+	Sharer.print(1.23456, 4); // sends the string "1.2345"
+	Sharer.println("Hello ;)"); // send the string and a new line "Hello ;)\n"
+	Sharer.println(); // just sends a new line
+	
+	// Write a single byte
+	Sharer.write(0x12);
+	
+	// Write a byte array
+	byte dataToSend[12];
+  	Sharer.write(dataToSend, 12);
+}
+```
 
 ### Capabilities
+You can change the limits of Sharer by editing the constants of file ```C:\Program Files (x86)\Arduino\libraries\Sharer\src\SharerConfig.h```.
+``` C++
+// maximum number of shared functions
+#define _SHARER_MAX_FUNCTION_COUNT		16
+
+// maximum number of shared variables
+#define _SHARER_MAX_VARIABLE_COUNT		32
+
+// circle buffer size for user serial message
+#define _SHARER_USER_RECEIVE_BUFFER_SIZE	64
+
+// maximum number of call to Serial.read() each time Sharer.Run() is called
+#define _SHARER_MAX_BYTE_READ_PER_RUN		1000
+```
 
 ## .NET usage
+You can find here the full documentation of Sharer.NET : [/Sharer.NET/Sharer.NET.Documentation.md](https://github.com/Rufus31415/Sharer.NET/blob/master/Sharer.NET/Sharer.NET.Documentation.md).
 
+
+# Contribute
+You are welcome to fork and request new features.
+
+If you are interested in developping Sharer for other languages (python, node js, java, ...), I would be happy to discuss it :).
 
 
 # How it works
 Sharer uses a unique protocole called the Sharer Protocole. Every serial commands received by the Arduino are interprated.
-
 
 To be continued, I promise... 😉
 
