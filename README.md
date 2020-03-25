@@ -159,39 +159,6 @@ void loop() {
 }
 ```
 
-
-## .Net code to interact with shared variables and functions :
-``` C#
-// Connect to Arduino board
-var connection = new SharerConnection("COM3", 115200);
-connection.Connect();
-
-// remote call function on Arduino and wait for the result
-var result = connection.Call("Sum", 10, 12);
-
-// Display the result
-Console.WriteLine("Status : " + result.Status);
-Console.WriteLine("Type : " + result.Type);
-Console.WriteLine("Value : " + result.Value);
-
-// Status : OK
-// Type : int
-// Value : 22
-
-
-// Read the variable
-var value = connection.ReadVariable("myVar");
-Console.WriteLine("Status : " + value.Status);
-Console.WriteLine("Value : " + value.Value);
-
-// Status : OK
-// Value : 25
-
-
-//Write a variable
-connection.WriteVariable("myVar", 12);
-```
-
 # Get Started
 ## Sources
 Sharer is divided into 2 repositories, one for the Arduino sources and the other for .NET sources
