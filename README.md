@@ -328,12 +328,9 @@ You can change the limits of Sharer by editing the constants of file ```C:\Progr
 ## .NET usage
 You can find here the full documentation of Sharer.NET : [/Sharer.NET/Sharer.NET.Documentation.md](https://github.com/Rufus31415/Sharer.NET/blob/master/Sharer.NET/Sharer.NET.Documentation.md).
 
-
-# Contribute
-You are welcome to fork and request new features.
-
-If you are interested in developping Sharer for other languages (python, node js, java, ...), I would be happy to discuss it :).
-
+# Performances
+A command takes less than 10ms to be called on a Arduino Uno (command + response) at 115200 bauds. The protocole is optimized in order not to have strings to decode, just a binary stream to interprete, byte by byte.
+Memory footprint has been optimized by using F() macro and PROGMEM to store names of variable, function and arguments in flash.
 
 # How it works
 Sharer uses a unique protocole called the Sharer Protocole. Every serial commands received by the Arduino are interprated.
@@ -342,3 +339,12 @@ To be continued, I promise... 😉
 
 ![Sharer](https://raw.githubusercontent.com/Rufus31415/Sharer.NET/master/Resources/RemoteFunctionCall.png)
 
+
+# Improvement ideas and contributions
+I have some ideas to extend Sharer features like :
+- Develop Sharer client for other languages like Python and Node.js
+- Add LabView and Matlab examples for research purposes
+- Add other transport layers like TCP and UDP
+- Add a HTTP REST API based on Sharer that exposes endpoints to call functions, and read/write variables.
+
+If you are interested in helping me with Sharer development, I will be happy to receive feature requests. Fork is also welcome ;)
