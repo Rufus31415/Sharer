@@ -43,8 +43,92 @@ Sharer has initially been developped for the Ballcuber project (https://ballcube
 </p>
 
 # Overview
-## Arduino code
+### How to connect
+``` C#
+// C#
+var connection = new SharerConnection("COM3", 115200);
+connection.Connect();
+```
+
+### How to call a function
+``` C#
+// C#
+var result = connection.Call("Sum", 10, 12);
+// result.Status : OK
+// result.Type : int
+// result.Value : 22
+```
+
+``` C#
+// C# - Read all digital pins : digitalRead(0) to digitalRead(13)
+for(int i=0; i <= 13; i++){
+	var digitalValue = connection.Call("digitalRead", i);
+	// digitalValue.Status : OK
+	// digitalValue.Type : bool
+	// digitalValue.Value : true or false
+}
+```
+``` C#
+// C# - Definition of all functions
+var functions = connection.Functions;
+// functions[0].Name : function name
+// functions[0].ReturnType : enum void, int, long, ...
+// functions[0].Arguments[0].Name // Name of first argument
+// functions[0].Arguments[0].Type // enum void, int, long, ...
+```
+
+### How to write a variables
+``` C#
+// C#
+connection.WriteVariable("myVar", 15); // returns true if writting OK
+```
+``` C#
+// C# - Write simultaneously several variables by passing a List<WriteVariable>()
+connection.WriteVariables(listOfVariablesToWrite);
+```
+``` C#
+// C# - Definition of all variables
+var variables = connection.Variables;
+// variables[0].Name : variable name
+// variables[0].Type : enum int, long, ...
+```
+
+### How to read variables
+``` C#
+// C#
+var value = connection.ReadVariable("myVar");
+// value.Status : OK
+// value.Value : 12
+```
+``` C#
+// C# - Read simultaneously several variables
+var values = connection.ReadVariables(new string[] {"myVar", "anotherVar", "yetAnother"});
+```
+
+### Get board information
+``` C#
+// C#
+var info = connection.GetInfos();
+// info.Board : Arduino UNO
+// info.CPUFrequency : 16000000 (Hz)
+// a lot more : info.CPlusPlusVersion, info.FunctionMaxCount, info.VariableMaxCount, ...
+```
+
+### Receive and send custom messages
+``` C#
+// C#
+connection.WriteUserData("Hello!");
+connection.WriteUserData(12.2);
+connection.WriteUserData(new byte[] {0x12, 0x25, 0xFF});
+
+// Event raised when new user data sent by Arduino
+connection.UserDataReceived += UserDataReceived;
+```
+
+
+### Arduino code
 ``` C++
+// C++ Arduino
 #include <Sharer.h>
 
 // A simple function that sums an integer and a byte and return an integer
@@ -60,6 +144,10 @@ void setup() {
 
 	// Expose this function to Sharer : int Sum(int a, byte b) 
 	Sharer_ShareFunction(int, Sum, int, a, byte, b);
+	
+	// Share system functions
+	Sharer_ShareFunction(bool, digitalRead, uint8_t, pin);
+	Sharer_ShareVoid(pinMode, uint8_t, pin);
 
 	// Expose this variable to Sharer so that the desktop application can read/write it
 	Sharer_ShareVariable(int, myVar);
