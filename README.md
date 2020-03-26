@@ -42,7 +42,7 @@ Sharer has initially been developped for the Ballcuber project (https://ballcube
 	</a>
 </p>
 
-# Overview
+# Overview 🧐
 ### How to connect
 ``` C#
 // C#
@@ -52,7 +52,7 @@ connection.Connect();
 
 ### How to call a function
 ``` C#
-// C#
+// C# - My Arduino code has a function : int Sum(int a, byte b);
 var result = connection.Call("Sum", 10, 12);
 // result.Status : OK
 // result.Type : int
@@ -136,7 +136,7 @@ int Sum(int a, byte b) {
 	return a + b;
 }
 
-// a asimple integer
+// a simple integer
 int myVar = 25;
 
 void setup() {
@@ -159,7 +159,7 @@ void loop() {
 }
 ```
 
-# Get Started
+# Get Started 💪
 ## Sources
 Sharer is divided into 2 repositories, one for the Arduino sources and the other for .NET sources
 - Arduino : https://github.com/Rufus31415/Sharer
@@ -211,7 +211,7 @@ The console example run with .NET Core 3.0. But you don't need any runtime to ex
 See the [license file](https://github.com/Rufus31415/Sharer.NET/blob/master/LICENSE) for details.
 
 
-# Usage
+# Usage 🛠️
 ## Arduino Usage
 ### Initialization
 The header file <Sharer.h> should be included. 
@@ -383,11 +383,11 @@ You can change the limits of Sharer by editing the constants of file ```C:\Progr
 ## .NET usage
 You can find here the full documentation of Sharer.NET : [/Sharer.NET/Sharer.NET.Documentation.md](https://github.com/Rufus31415/Sharer.NET/blob/master/Sharer.NET/Sharer.NET.Documentation.md).
 
-# Performances
+# Performances 🚀
 A command takes less than 10ms to be called on a Arduino Uno (command + response) at 115200 bauds. The protocole is optimized in order not to have strings to decode, just a binary stream to interprete, byte by byte.
 Memory footprint has been optimized by using F() macro and PROGMEM to store names of variable, function and arguments in flash.
 
-# How it works
+# How it works 🤯
 Sharer uses a unique protocole called the Sharer Protocole. Every serial commands received by the Arduino are interprated.
 
 To be continued, I promise... 😉
@@ -395,7 +395,7 @@ To be continued, I promise... 😉
 ![Sharer](https://raw.githubusercontent.com/Rufus31415/Sharer.NET/master/Resources/RemoteFunctionCall.png)
 
 
-# Improvement ideas and contributions
+# Improvement ideas and contributions 🧠
 I have some ideas to extend Sharer features like :
 - Develop Sharer client for other languages like Python and Node.js
 - Add LabView and Matlab examples for research purposes
