@@ -166,6 +166,13 @@ Sharer is divided into 2 repositories, one for the Arduino sources and the other
 - .NET : https://github.com/Rufus31415/Sharer.NET
 
 ## Download and install Arduino library
+### Library manager
+Sharer is available in the library manager available in the menu ```Tools/Manage Libraries...```. Just look for Sharer and install the latest version.
+
+![Sharer in library manager](https://raw.githubusercontent.com/Rufus31415/Sharer/master/Resources/arduino-package-manager.png)
+
+
+### Direct download
 Please download the Sharer library archive : https://github.com/Rufus31415/Sharer/releases/latest/download/Sharer.zip
 
 Sharer has been tested with Arduino UNO, NANO, MEGA and DUE. It may work with other boards.
