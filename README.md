@@ -410,3 +410,10 @@ I have some ideas to extend Sharer features like :
 - Add a HTTP REST API based on Sharer that exposes endpoints to call functions, and read/write variables.
 
 If you are interested in helping me with Sharer development, I will be happy to receive feature requests. Fork is also welcome ;)
+
+
+
+<details>
+<summary></summary>
+<img src="https://ga-beacon.appspot.com/UA-163892314-2/Sharer/">
+</details>
