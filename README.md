@@ -115,6 +115,10 @@ var info = connection.GetInfos();
 ```
 
 ### Receive and send custom messages
+You can send and receive classic messages on the serial port with the ```WriteUserData``` functions. Also, the ```UserDataReceived``` event is raised when data is sent by the Arduino.
+
+Warning : it is not possible to read or write variables and call functions in your ```UserDataReceived``` event handler.
+
 ``` C#
 // C#
 connection.WriteUserData("Hello!");
