@@ -271,6 +271,8 @@ void setup() {
 ### Share functions with a return type
 To add a variable in the shared function list, you should call the macro ```Sharer_ShareFunction```. Its first argument is the returned type, and the second is its name. Following arguments of the macro describe the argument of the shared function by its type and its name. There is no limit in the number of argument you can share, but all arguments should be shared.
 
+Class method sharing is not supported and shared functions must be free functions (non-member static functions). 
+
 You can share your own functions, but all system functions like analogRead, digitalRead, digitalWrite, millis, ...
 
 ``` C++
