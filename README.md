@@ -50,6 +50,8 @@ var connection = new SharerConnection("COM3", 115200);
 connection.Connect();
 ```
 
+Remark : for some boards, like Micro and Leonardo, it is necessary to set the RTS and DTR signals with the ```RtsEnable``` and ```DtrEnable``` properties.
+
 ### How to call a function
 ``` C#
 // C# - My Arduino code has a function : int Sum(int a, byte b);
